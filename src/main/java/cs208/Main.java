@@ -310,7 +310,7 @@ public class Main
         database.updateExistingStudentInformation(updated);
     }
 
-    // Case 23 Delete Existing Student
+    // Case 23 Delete Existing Student for Case 23
     private static void menuDeleteExistingStudent()
     {
         System.out.println("Deleting existing student...");
