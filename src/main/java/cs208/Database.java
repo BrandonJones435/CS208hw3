@@ -336,6 +336,7 @@ public class Database
         }
     }
 
+    // For case 20
     public void listAllStudents()
     {
         String sql =
