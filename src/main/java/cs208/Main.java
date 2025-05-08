@@ -241,7 +241,7 @@ public class Main
 
         database.deleteExistingClass(id);
     }
-
+    // Case 20 List all Students
     private static void menuListAllStudents()
     {
         System.out.println("Listing all students...");
@@ -252,12 +252,16 @@ public class Main
     {
         System.out.println("Adding new student...");
 
-        String firstName = null;
-        String lastName = null;
-        Date birthDate = null;
+        String firstName;
+        String lastName;
+        Date birthDate;
         try
         {
-            // TODO: add your code here
+            System.out.print("Enter the student first name: ");
+            firstName = inputScanner.nextLine();
+
+            System.out.print("Enter the student last name: ");
+            lastName = inputScanner.nextLine();
 
             System.out.print("Enter the student birth date in ISO format (yyyy-mm-dd): ");
             birthDate = Date.valueOf(inputScanner.nextLine());
@@ -268,21 +272,62 @@ public class Main
             return;
         }
 
-        // TODO: add your code here
+        // construct a new Student and call into the Database
+        Student newStudent = new Student(firstName, lastName, birthDate);
+        database.addNewStudent(newStudent);
     }
 
     private static void menuUpdateExistingStudentInformation()
     {
         System.out.println("Updating existing student information...");
 
-        // TODO: add your code here
+        int id;
+        String firstName;
+        String lastName;
+        Date birthDate;
+        try
+        {
+            System.out.print("Enter the ID of the student you want to update: ");
+            id = Integer.parseInt(inputScanner.nextLine());
+
+            System.out.print("Enter the new first name: ");
+            firstName = inputScanner.nextLine();
+
+            System.out.print("Enter the new last name: ");
+            lastName = inputScanner.nextLine();
+
+            System.out.print("Enter the new birth date in ISO format (yyyy-mm-dd): ");
+            birthDate = Date.valueOf(inputScanner.nextLine());
+        }
+        catch (Exception e)
+        {
+            System.out.println("Invalid input, please try again.");
+            return;
+        }
+
+        // assume your Student class has a constructor Student(int id, String fn, String ln, Date bd)
+        Student updated = new Student(id, firstName, lastName, birthDate);
+        database.updateExistingStudentInformation(updated);
     }
+
 
     private static void menuDeleteExistingStudent()
     {
         System.out.println("Deleting existing student...");
 
-        // TODO: add your code here
+        int id;
+        try
+        {
+            System.out.print("Enter the ID of the student you want to delete: ");
+            id = Integer.parseInt(inputScanner.nextLine());
+        }
+        catch (Exception e)
+        {
+            System.out.println("Invalid input, please try again.");
+            return;
+        }
+
+        database.deleteExistingStudent(id);
     }
 
     private static void menuListAllRegisteredStudents()

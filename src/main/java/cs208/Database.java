@@ -1,7 +1,6 @@
 package cs208;
 
 import org.sqlite.SQLiteConfig;
-
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -341,27 +340,27 @@ public class Database
     {
         String sql =
                 "SELECT id, first_name, last_name, birth_date\n" +
-                "FROM students;";
+                        "FROM students;";
 
         try
-        (
-            Connection connection = getDatabaseConnection();
-            Statement sqlStatement = connection.createStatement();
-            ResultSet resultSet = sqlStatement.executeQuery(sql);
-        )
+                (
+                        Connection connection = getDatabaseConnection();
+                        Statement sqlStatement = connection.createStatement();
+                        ResultSet resultSet = sqlStatement.executeQuery(sql);
+                )
         {
             printTableHeader(new String[]{"id", "first_name", "last_name", "birth_date"});
 
             while (resultSet.next())
             {
-                int id = resultSet.getInt("id");
-                String firstName = resultSet.getString("first_name");
-                String lastName = resultSet.getString("last_name");
+                int    id         = resultSet.getInt("id");
+                String firstName  = resultSet.getString("first_name");
+                String lastName   = resultSet.getString("last_name");
+                String birthDate  = resultSet.getString("birth_date");
 
-                // the resultSet.getDate() does not work in this case, so we're using the getString() method instead
-                String birthDate = resultSet.getString("birth_date");
-
-                // TODO: add your code here
+                // ← this was missing:
+                System.out.printf("| %d | %s | %s | %s |%n",
+                        id, firstName, lastName, birthDate);
             }
         }
         catch (SQLException sqlException)
@@ -371,16 +370,50 @@ public class Database
         }
     }
 
+
     public void addNewStudent(Student newStudent)
     {
-        // 💡 HINT: in a prepared statement
-        // to set the date parameter in the format "YYYY-MM-DD", use the code:
-        // sqlStatement.setString(columnIndexTBD, newStudent.getBirthDate().toString());
-        //
-        // to set the date parameter in the unix format (i.e., milliseconds since 1970), use this code:
-        // sqlStatement.setDate(columnIndexTBD, newStudent.getBirthDate());
+        String sql =
+                "INSERT INTO students (first_name, last_name, birth_date)\n" +
+                        "VALUES (?, ?, ?);";
 
-        // TODO: add your code here
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                )
+        {
+            // set the first_name and last_name parameters
+            stmt.setString(1, newStudent.getFirstName());
+            stmt.setString(2, newStudent.getLastName());
+
+            // set the birth_date in ISO (YYYY-MM-DD) form:
+            stmt.setString(3, newStudent.getBirthDate().toString());
+            // —or, if you prefer unix‐ms form, you could do:
+            // stmt.setDate(3, newStudent.getBirthDate());
+
+            int numberOfRowsAffected = stmt.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                // grab the auto-generated id
+                try (ResultSet keys = stmt.getGeneratedKeys())
+                {
+                    if (keys.next())
+                    {
+                        int generatedId = keys.getInt("last_insert_rowid()");
+                        System.out.println("SUCCESSFULLY inserted a new student with id = " + generatedId);
+                        newStudent.setId(generatedId);
+                    }
+                }
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to insert into the students table");
+            System.out.println(sqlException.getMessage());
+        }
     }
 
     public void listAllRegisteredStudents()
@@ -414,6 +447,83 @@ public class Database
         catch (SQLException sqlException)
         {
             System.out.println("!!! SQLException: failed to query the registered_students table. Make sure you executed the schema.sql and seeds.sql scripts");
+            System.out.println(sqlException.getMessage());
+        }
+    }
+
+    public void updateExistingStudentInformation(Student studentToUpdate)
+    {
+        String sql =
+                "UPDATE students\n" +
+                        "SET first_name = ?,\n" +
+                        "    last_name  = ?,\n" +
+                        "    birth_date = ?\n" +
+                        "WHERE id = ?;";
+
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                )
+        {
+            // 1) first name
+            stmt.setString(1, studentToUpdate.getFirstName());
+            // 2) last name
+            stmt.setString(2, studentToUpdate.getLastName());
+            // 3) birth date (ISO string);
+            stmt.setString(3, studentToUpdate.getBirthDate().toString());
+            // 4) which row to update
+            stmt.setInt(4, studentToUpdate.getId());
+
+            int numberOfRowsAffected = stmt.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                System.out.println("SUCCESSFULLY updated student with id = " + studentToUpdate.getId());
+            }
+            else
+            {
+                System.out.println("!!! WARNING: no student found with id = " + studentToUpdate.getId());
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to update student with id = " + studentToUpdate.getId());
+            System.out.println(sqlException.getMessage());
+        }
+    }
+
+    public void deleteExistingStudent(int idOfStudentToDelete)
+    {
+        String sql =
+                "DELETE FROM students\n" +
+                        "WHERE id = ?;";
+
+        try
+                (
+                        Connection connection = getDatabaseConnection();
+                        PreparedStatement stmt = connection.prepareStatement(sql);
+                )
+        {
+            // bind the id parameter
+            stmt.setInt(1, idOfStudentToDelete);
+
+            int numberOfRowsAffected = stmt.executeUpdate();
+            System.out.println("numberOfRowsAffected = " + numberOfRowsAffected);
+
+            if (numberOfRowsAffected > 0)
+            {
+                System.out.println("SUCCESSFULLY deleted the student with id = " + idOfStudentToDelete);
+            }
+            else
+            {
+                System.out.println("!!! WARNING: no student found with id = " + idOfStudentToDelete);
+            }
+        }
+        catch (SQLException sqlException)
+        {
+            System.out.println("!!! SQLException: failed to delete the student with id = " + idOfStudentToDelete);
             System.out.println(sqlException.getMessage());
         }
     }
