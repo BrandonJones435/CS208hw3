@@ -247,7 +247,7 @@ public class Main
         System.out.println("Listing all students...");
         database.listAllStudents();
     }
-
+    // Case 21 Add New Student
     private static void menuAddNewStudent()
     {
         System.out.println("Adding new student...");
