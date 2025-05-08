@@ -276,7 +276,7 @@ public class Main
         Student newStudent = new Student(firstName, lastName, birthDate);
         database.addNewStudent(newStudent);
     }
-
+    // Case 22 Update Existing Student Information
     private static void menuUpdateExistingStudentInformation()
     {
         System.out.println("Updating existing student information...");
